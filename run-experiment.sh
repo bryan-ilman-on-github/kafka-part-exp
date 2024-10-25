@@ -75,44 +75,58 @@ fi
 
 echo "Host IP: $HOST_IP."
 
-# Define the experiment directory and log file.
-EXPERIMENT_DIR="./kafka-hdd/experiments/$(printf '%03d' $PARAM)"
-LOG_FILE="${EXPERIMENT_DIR}/$(printf '%03d' $PARAM).log"
+# Define the log file path on the host.
+LOG_DIR="./kafka-hdd/experiments/$(printf '%03d' $PARAM)"
+LOG_FILE="$LOG_DIR/log-00$PARAM.txt"
 
-# Remove existing log file if it exists, then create a new one.
+# Ensure the log directory exists.
+mkdir -p "$LOG_DIR"
+
+# Remove the log file if it exists.
 rm -f "$LOG_FILE"
-touch "$LOG_FILE"
 
 # Execute commands inside the kafka-clients container and log output.
 docker exec kafka-clients bash -c "
   cd /home/ubuntu &&
-  eval \$(ssh-agent) &&
-  ssh-add /home/ubuntu/newkey &&
-  cd /home/ubuntu/kafka-hdd &&
-  export KAFKA_DIR=\$PWD/kafka_2.13-3.4.1 &&
-  export REMOTEHOST=$HOST_IP &&
-  echo \"KAFKA_DIR is: \$KAFKA_DIR.\" &&
-  echo \"REMOTEHOST is: \$REMOTEHOST.\" &&
-  ./scripts/check_reqs.sh &&
-  cd experiments &&
-  cd $(printf '%03d' $PARAM) &&
-  date &&
-  ./run.sh &&
-  date &&
-  [ $PARAM -eq 1 ] || [ $PARAM -eq 2 ] && ./post.sh
+  # Remove the log file inside the container if it exists.
+  rm -f kafka-hdd/experiments/$(printf '%03d' $PARAM)/log-00$PARAM.txt &&
+  # Create a new log file.
+  touch kafka-hdd/experiments/$(printf '%03d' $PARAM)/log-00$PARAM.txt &&
+  
+  # Start logging commands.
+  (
+    eval \$(ssh-agent) &&
+    ssh-add /home/ubuntu/newkey &&
+    cd /home/ubuntu/kafka-hdd &&
+    export KAFKA_DIR=\$PWD/kafka_2.13-3.4.1 &&
+    export REMOTEHOST=$HOST_IP &&
+    ./scripts/check_reqs.sh &&
+    cd experiments &&
+    cd $(printf '%03d' $PARAM) &&
+    date &&
+    ./run.sh &&
+    date &&
+    [ $PARAM -eq 1 ] || [ $PARAM -eq 2 ] && ./post.sh
 
-  echo 'Experiment complete.'
+    echo 'Experiment complete.'
+    
+    # Set locale inside Docker container.
+    echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen &&
+    export LANG=en_US.UTF-8 &&
+    dpkg-reconfigure locales &&
+    
+    # Generate plots using gnuplot.
+    cd graphs
+    for plt_file in *.plt; do
+        # Extract the filename without the extension.
+        base_name=\$(basename \"\$plt_file\" .plt)
 
-  # Set locale inside Docker container.
-  echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen &&
-  export LANG=en_US.UTF-8 &&
-  dpkg-reconfigure locales &&
+        # Generate the PNG file using gnuplot.
+        gnuplot -e \"set terminal png; set output '../\${base_name}.png'; load '\$plt_file'\"
 
-  # Generate plots using gnuplot.
-  cd graphs
-  for plt_file in *.plt; do
-      base_name=\$(basename \"\$plt_file\" .plt)
-      gnuplot -e \"set terminal png; set output '../\${base_name}.png'; load '\$plt_file'\"
-      echo \"\${base_name}.png generated.\"
-  done
-" | tee -a "$LOG_FILE"
+        echo \"\${base_name}.png generated.\"
+    done
+  ) | tee kafka-hdd/experiments/$(printf '%03d' $PARAM)/log-00$PARAM.txt
+"
+
+echo "Experiment logs saved to $LOG_FILE."

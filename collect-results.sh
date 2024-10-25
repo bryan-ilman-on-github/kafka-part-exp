@@ -98,10 +98,10 @@ if [ "$process_all" = true ]; then
         # Copy all files from the container's directory to the temporary directory.
         docker cp "$container_id:/home/ubuntu/kafka-hdd/experiments/$container_folder" "$temp_dir/$container_folder"
 
-        # Filter and move only .png, .dat, and .log files to the final destination directory.
-        echo "Moving .png, .dat, and .log files to ./$folder."
+        # Filter and move only .png, .dat, and .txt files to the final destination directory.
+        echo "Moving .png, .dat, and .txt files to ./$folder."
         mkdir -p "./$folder"
-        find "$temp_dir/$container_folder" -type f \( -name "*.png" -o -name "*.dat" -o -name "*.log" \) -exec mv {} "./$folder/" \;
+        find "$temp_dir/$container_folder" -type f \( -name "*.png" -o -name "*.dat" -o -name "*.txt" \) -exec mv {} "./$folder/" \;
 
         # Clean up the temporary directory for this folder.
         rm -rf "$temp_dir/$container_folder"
@@ -112,10 +112,10 @@ else
     # Copy all files from the container's directory to the temporary directory.
     docker cp "$container_id:/home/ubuntu/kafka-hdd/experiments/$container_folder" "$temp_dir/$container_folder"
 
-    # Filter and move only .png, .dat, and .log files to the final destination directory.
-    echo "Moving .png, .dat, and .log files to ./$folder."
+    # Filter and move only .png, .dat, and .txt files to the final destination directory.
+    echo "Moving .png, .dat, and .txt files to ./$folder."
     mkdir -p "./$folder"
-    find "$temp_dir/$container_folder" -type f \( -name "*.png" -o -name "*.dat" -o -name "*.log" \) -exec mv {} "./$folder/" \;
+    find "$temp_dir/$container_folder" -type f \( -name "*.png" -o -name "*.dat" -o -name "*.txt" \) -exec mv {} "./$folder/" \;
 
     # Clean up the temporary directory for this folder.
     rm -rf "$temp_dir/$container_folder"
