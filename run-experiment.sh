@@ -91,6 +91,8 @@ docker exec kafka-clients bash -c "
   cd /home/ubuntu/kafka-hdd &&
   export KAFKA_DIR=\$PWD/kafka_2.13-3.4.1 &&
   export REMOTEHOST=$HOST_IP &&
+  echo \"KAFKA_DIR is: \$KAFKA_DIR.\" &&
+  echo \"REMOTEHOST is: \$REMOTEHOST.\" &&
   ./scripts/check_reqs.sh &&
   cd experiments &&
   cd $(printf '%03d' $PARAM) &&
