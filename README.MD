@@ -1,5 +1,6 @@
-## Experiment Reproduction Documentation
+## Experiment Documentation
 
+Based on:
 [EFFICIENT TOPIC PARTITIONING OF APACHE KAFKA FOR HIGH-RELIABILITY REAL-TIME DATA STREAMING APPLICATIONS](https://www.sciencedirect.com/science/article/pii/S0167739X23004892)
 
 #### 1. Clone the Kafka Partitioning Experiment GitHub Repository
